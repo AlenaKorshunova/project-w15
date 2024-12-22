@@ -69,3 +69,32 @@ def get_forecast(location_key):
     else:
         print(f'Error: {response.status_code}')
         return None, Response.SERVER_ERROR
+
+def get_weather_data(city, days):
+    """Вернуть данные о погоде в виде DataFrame."""
+    df = pd.DataFrame(data_weather[city])
+    return df.head(days)
+
+def get_city_coordinates(city_name):
+    """Получить координаты города и данные о погоде."""
+    if city_name in data_loc:
+        return data_loc[city_name][1], Response.GOOD
+
+    location_data = get_location_key_and_coord(city_name)
+    
+    if not location_data or location_data[2] == Response.BAD:
+        return None, Response.BAD
+    elif location_data[2] != 200:
+        return None, Response.SERVER_ERROR
+    
+    data_loc[city_name] = (location_data[0], location_data[1])
+    
+    forecast_data = get_forecast(location_data[0])
+    
+    if not forecast_data or forecast_data[1] != 200:
+        data_loc.pop(city_name)
+        return None, Response.SERVER_ERROR
+    
+    data_weather[city_name] = forecast_data[0]
+    
+    return location_data[1], Response.GOOD
