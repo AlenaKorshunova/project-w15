@@ -98,3 +98,11 @@ def get_city_coordinates(city_name):
     data_weather[city_name] = forecast_data[0]
     
     return location_data[1], Response.GOOD
+
+# Инициализация Flask и Dash приложений
+web_app = Flask(__name__, static_folder='static')
+web_app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
+
+app = Dash(__name__, server=web_app, url_base_pathname='/dash/')
+cities = []
+
