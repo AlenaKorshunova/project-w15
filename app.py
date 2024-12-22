@@ -44,3 +44,28 @@ def get_location_key_and_coord(city: str):
     else:
         print(f'Error: {response.status_code}')
         return None, None, Response.SERVER_ERROR
+
+
+def get_forecast(location_key):
+    """Получить информацию о прогнозе по ключу местоположения."""
+    url = f'http://dataservice.accuweather.com/forecasts/v1/daily/5day/{location_key}'
+    params = {'apikey': api_key, 'details': 'true', 'metric': 'true'}
+    
+    response = requests.get(url, params=params)
+    data = {'date': [], 'temperature': [], 'wind_speed': [], 'humidity': []}
+
+    if response.status_code == 200:
+        try:
+            daily_forecasts = response.json()['DailyForecasts']
+            for day_forecast in daily_forecasts:
+                data['date'].append(day_forecast['Date'])
+                avg_temp = (day_forecast['Temperature']['Minimum']['Value'] + day_forecast['Temperature']['Maximum']['Value']) / 2
+                data['temperature'].append(avg_temp)
+                data['wind_speed'].append(day_forecast['Day']['Wind']['Speed']['Value'])
+                data['humidity'].append(day_forecast['Day']['RelativeHumidity']['Average'])
+            return data, response.status_code
+        except KeyError:
+            return None, Response.BAD
+    else:
+        print(f'Error: {response.status_code}')
+        return None, Response.SERVER_ERROR
